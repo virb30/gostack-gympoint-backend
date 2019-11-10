@@ -147,6 +147,32 @@ class RegistrationController {
 
     return res.json(registration);
   }
+
+  async show(req, res) {
+    const { registrationId } = req.params;
+
+    const registration = await Registration.findByPk(registrationId, {
+      attributes: ['id', 'start_date', 'end_date', 'price', 'active'],
+      include: [
+        {
+          model: Plan,
+          as: 'plan',
+          attributes: ['id', 'title'],
+        },
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+
+    if (!registration) {
+      return res.status(401).json({ error: 'Registration does not exists' });
+    }
+
+    return res.status(200).json(registration);
+  }
 }
 
 export default new RegistrationController();

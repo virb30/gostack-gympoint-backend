@@ -70,6 +70,20 @@ class AnswerController {
 
     return res.json(helpOrder);
   }
+
+  async show(req, res) {
+    const { helpOrderId } = req.params;
+
+    const helpOrder = await HelpOrder.findByPk(helpOrderId, {
+      attributes: ['id', 'question', 'answer', 'answer_at'],
+    });
+
+    if (!helpOrder) {
+      return res.status(401).json({ error: 'Help Order does not exists' });
+    }
+
+    return res.status(200).json(helpOrder);
+  }
 }
 
 export default new AnswerController();
