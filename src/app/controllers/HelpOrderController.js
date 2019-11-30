@@ -8,6 +8,7 @@ import Registration from '../models/Registration';
 class HelpOrderController {
   async index(req, res) {
     const { studentId } = req.params;
+    const { page = 1, per_page = 5 } = req.query;
 
     const student = await Student.findByPk(studentId);
     if (!student) {
@@ -29,11 +30,18 @@ class HelpOrderController {
         .json({ error: 'Student registration is not active' });
     }
 
+    const total = await HelpOrder.count({
+      where: {
+        student_id: studentId,
+      },
+    });
+
     const helpOrders = await HelpOrder.findAll({
       where: {
         student_id: studentId,
       },
       attributes: ['id', 'question', 'answer', 'answer_at'],
+      order: [['created_at', 'DESC']],
       include: [
         {
           model: Student,
@@ -41,9 +49,13 @@ class HelpOrderController {
           attributes: ['id', 'name'],
         },
       ],
+      limit: Number(per_page) === 0 ? total : per_page,
+      offset: (page - 1) * per_page,
     });
 
-    return res.json(helpOrders);
+    const num_pages = Number(per_page) === 0 ? 1 : Math.ceil(total / per_page);
+
+    return res.json({ helpOrders, num_pages });
   }
 
   async store(req, res) {

@@ -8,16 +8,18 @@ import Registration from '../models/Registration';
 class CheckinController {
   async index(req, res) {
     const { studentId } = req.params;
+    const { page = 1, per_page = 20 } = req.query;
 
     const student = await Student.findByPk(studentId);
     if (!student) {
-      return res.status(401).json({ error: 'Student does not exists' });
+      return res.status(401).json({ error: 'Estudante não encontrado' });
     }
 
     const checkins = await Checkin.findAll({
       where: {
         student_id: studentId,
       },
+      order: [['createdAt', 'DESC']],
       attributes: ['id', 'createdAt'],
       include: [
         {
@@ -26,6 +28,8 @@ class CheckinController {
           attributes: ['id', 'name'],
         },
       ],
+      limit: per_page,
+      offset: (page - 1) * per_page,
     });
 
     return res.json(checkins);
@@ -49,9 +53,7 @@ class CheckinController {
     });
 
     if (!registration) {
-      return res
-        .status(401)
-        .json({ error: 'Student registration is not active' });
+      return res.status(401).json({ error: 'Sua Matrícula não está ativa' });
     }
 
     const checkinCount = await Checkin.count({
@@ -64,16 +66,21 @@ class CheckinController {
     });
 
     if (checkinCount >= 5) {
-      return res
-        .status(401)
-        .json({ error: 'Maximum checkins on past 7 days reached' });
+      return res.status(401).json({ error: 'Limite de checkins atingido' });
     }
 
     const checkin = await Checkin.create({
       student_id: studentId,
     });
 
-    return res.json(checkin);
+    return res.json({
+      id: checkin.id,
+      createdAt: checkin.createdAt,
+      student: {
+        id: student.id,
+        name: student.name,
+      },
+    });
   }
 }
 

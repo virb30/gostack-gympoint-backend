@@ -9,12 +9,14 @@ import Mail from '../../lib/Mail';
 
 class RegistrationController {
   async index(req, res) {
-    const { page = 1 } = req.query;
+    const { page = 1, per_page = 20 } = req.query;
+
+    const total = await Registration.count();
 
     const registrations = await Registration.findAll({
       attributes: ['id', 'start_date', 'end_date', 'price', 'active'],
-      limit: 20,
-      offset: (page - 1) * 20,
+      limit: Number(per_page) === 0 ? total : per_page,
+      offset: (page - 1) * per_page,
       include: [
         {
           model: Plan,
@@ -29,7 +31,9 @@ class RegistrationController {
       ],
     });
 
-    return res.json(registrations);
+    const num_pages = Number(per_page) === 0 ? 1 : Math.ceil(total / per_page);
+
+    return res.json({ registrations, num_pages });
   }
 
   async update(req, res) {

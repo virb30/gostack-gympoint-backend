@@ -4,11 +4,19 @@ import Plan from '../models/Plan';
 
 class PlanController {
   async index(req, res) {
+    const { page = 1, per_page = 20 } = req.query;
+
+    const total = await Plan.count();
+
     const plans = await Plan.findAll({
       attributes: ['id', 'title', 'price', 'duration'],
+      limit: Number(per_page) === 0 ? total : per_page,
+      offset: (page - 1) * per_page,
     });
 
-    return res.json(plans);
+    const num_pages = Number(per_page) === 0 ? 1 : Math.ceil(total / per_page);
+
+    return res.json({ plans, num_pages });
   }
 
   async destroy(req, res) {

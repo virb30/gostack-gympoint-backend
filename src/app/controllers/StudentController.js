@@ -6,15 +6,22 @@ import Student from '../models/Student';
 class StudentController {
   async index(req, res) {
     const { q } = req.query;
+    const { page = 1, per_page = 20 } = req.query;
 
     const where = q ? { name: { [Op.iLike]: `%${q}%` } } : null;
+
+    const total = await Student.count({ where });
 
     const students = await Student.findAll({
       where,
       attributes: ['id', 'name', 'email', 'age', 'weight', 'height'],
+      limit: Number(per_page) === 0 ? total : per_page,
+      offset: (page - 1) * per_page,
     });
 
-    return res.json(students);
+    const num_pages = Number(per_page) === 0 ? 1 : Math.ceil(total / per_page);
+
+    return res.json({ students, num_pages });
   }
 
   async show(req, res) {
