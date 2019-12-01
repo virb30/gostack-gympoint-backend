@@ -8,7 +8,7 @@ import Registration from '../models/Registration';
 class HelpOrderController {
   async index(req, res) {
     const { studentId } = req.params;
-    const { page = 1, per_page = 5 } = req.query;
+    const { page = 1, per_page = 20 } = req.query;
 
     const student = await Student.findByPk(studentId);
     if (!student) {
