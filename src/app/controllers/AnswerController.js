@@ -8,7 +8,7 @@ import Student from '../models/Student';
 
 class AnswerController {
   async index(req, res) {
-    const { page = 1, per_page = 5 } = req.query;
+    const { page = 1, per_page = 20 } = req.query;
     const total = await HelpOrder.count({
       where: {
         answer: null,
